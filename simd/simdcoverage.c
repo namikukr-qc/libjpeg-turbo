@@ -45,6 +45,8 @@ static const char *instrset_name(int instrset) {
       return "AVX2";
     case JSIMD_MMI:
       return "MMI";
+    case JSIMD_SVE2:
+      return "SVE2";
     default:
       return "Unknown";
   }

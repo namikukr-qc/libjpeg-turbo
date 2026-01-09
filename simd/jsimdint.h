@@ -113,6 +113,9 @@ DEFINE_SIMD_EXTRGB_COLOR_CONVERTERS(gray, mmx)
 DEFINE_SIMD_EXTRGB_COLOR_CONVERTERS(ycc, neon)
 DEFINE_SIMD_EXTRGB_COLOR_CONVERTERS(gray, neon)
 
+DEFINE_SIMD_EXTRGB_COLOR_CONVERTERS(ycc, sve2)
+// TODO: define SVE2 gray convert
+
 DEFINE_SIMD_EXTRGB_COLOR_CONVERTERS(ycc, altivec)
 DEFINE_SIMD_EXTRGB_COLOR_CONVERTERS(gray, altivec)
 
@@ -194,6 +197,8 @@ DEFINE_SIMD_EXTRGB_COLOR_DECONVERTERS(mmx)
 
 DEFINE_SIMD_EXTRGB_COLOR_DECONVERTERS(neon)
 
+DEFINE_SIMD_EXTRGB_COLOR_DECONVERTERS(sve2)
+
 DEFINE_SIMD_EXTRGB_COLOR_DECONVERTERS(altivec)
 
 DEFINE_SIMD_EXTRGB_COLOR_DECONVERTERS(rvv)
@@ -207,6 +212,9 @@ EXTERN(void) jsimd_ycc_rgb565_convert_neon
   (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
    JSAMPARRAY output_buf, int num_rows);
 
+EXTERN(void) jsimd_ycc_rgb565_convert_sve2
+  (JDIMENSION out_width, JSAMPIMAGE input_buf, JDIMENSION input_row,
+   JSAMPARRAY output_buf, int num_rows);
 
 /* Downsampling */
 
@@ -523,6 +531,9 @@ EXTERN(void) jsimd_quantize_mmx
   (JCOEFPTR coef_block, DCTELEM *divisors, DCTELEM *workspace);
 
 EXTERN(void) jsimd_quantize_neon
+  (JCOEFPTR coef_block, DCTELEM *divisors, DCTELEM *workspace);
+
+EXTERN(void) jsimd_quantize_sve2
   (JCOEFPTR coef_block, DCTELEM *divisors, DCTELEM *workspace);
 
 EXTERN(void) jsimd_quantize_altivec

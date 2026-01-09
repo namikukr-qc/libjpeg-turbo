@@ -41,8 +41,6 @@ EXTERN(unsigned int) jsimd_set_ycc_rgb565(j_decompress_ptr cinfo);
 EXTERN(void) jsimd_color_deconvert(j_decompress_ptr cinfo,
                                    JSAMPIMAGE input_buf, JDIMENSION input_row,
                                    JSAMPARRAY output_buf, int num_rows);
-
-
 /* Downsampling */
 EXTERN(unsigned int) jsimd_set_h2v1_downsample(j_compress_ptr cinfo);
 EXTERN(void) jsimd_h2v1_downsample(j_compress_ptr cinfo,

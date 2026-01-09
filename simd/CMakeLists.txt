@@ -335,6 +335,20 @@ if(BITS EQUAL 32)
   unset(CMAKE_REQUIRED_FLAGS)
 endif()
 
+if(BITS EQUAL 64)
+  # TODO check minimum architecture
+  set(CMAKE_REQUIRED_FLAGS "-march=armv8-a+sve2")
+  check_c_source_compiles("
+    #include <arm_sve.h>
+    int main(int argc, char **argv) {
+      svuint8_t input = svdup_u8((uint8_t)argc);
+      svuint16_t output = svmovlb(input);
+      return svlasta(svpfalse(), output);
+    }" HAVE_SVE2)
+  if(NOT HAVE_SVE2)
+    unset(CMAKE_REQUIRED_FLAGS)
+  endif()
+endif()
 # GCC 11 and earlier and some older versions of Clang do not have a full or
 # optimal set of Neon intrinsics.  The presence or absence of the three
 # intrinsics we tested above is a reasonable proxy for this, except with GCC 10
@@ -372,7 +386,22 @@ if(UNIX AND BITS EQUAL 32)
   endif()
 endif()
 
-add_library(simd OBJECT ${SIMD_SOURCES} arm/aarch${BITS}/jsimdcpu.c jsimd.c)
+if(HAVE_SVE2)
+  include(CheckSymbolExists)
+  check_symbol_exists(getauxval sys/auxv.h HAVE_GETAUXVAL)
+  if(HAVE_GETAUXVAL)
+    set_source_files_properties(arm/aarch${BITS}/jsimdcpu.c PROPERTIES
+      COMPILE_DEFINITIONS HAVE_GETAUXVAL)
+  endif()
+  set(SVE2_SOURCES arm/jccolor-sve2.c arm/jdcolor-sve2.c arm/jquanti-sve2.c)
+  foreach(file ${SVE2_SOURCES})
+    set_property(SOURCE ${file} APPEND_STRING PROPERTY COMPILE_FLAGS
+      " -march=armv8-a+sve2")
+  endforeach()
+endif()
+
+
+add_library(simd OBJECT ${SIMD_SOURCES} arm/aarch${BITS}/jsimdcpu.c jsimd.c ${SVE2_SOURCES})
 
 if(CMAKE_POSITION_INDEPENDENT_CODE OR ENABLE_SHARED)
   set_target_properties(simd PROPERTIES POSITION_INDEPENDENT_CODE 1)

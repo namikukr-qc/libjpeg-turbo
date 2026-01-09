@@ -24,11 +24,23 @@
 
 #include "../../jsimdint.h"
 
+#if defined(__linux__)
+#include <sys/auxv.h>
+#endif
+
 HIDDEN unsigned int
 jpeg_simd_cpu_support(void)
 {
   /* Armv8 architectures support Neon instructions by default.  They are no
    * longer optional as they were with Armv7.
    */
-  return JSIMD_NEON;
+  // Check for SVE2.
+  unsigned int simd_support = JSIMD_NEON;
+
+#if defined(HAVE_GETAUXVAL)
+  unsigned long cpufeatures = getauxval(AT_HWCAP2);
+  if (cpufeatures & HWCAP2_SVE2)
+    simd_support |= JSIMD_SVE2;
+#endif
+  return simd_support;
 }

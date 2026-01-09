@@ -82,7 +82,7 @@ init_simd(j_common_ptr cinfo)
   if (!GETENV_S(env, 2, "JSIMD_FORCE3DNOW") && !strcmp(env, "1"))
     simd_support &= JSIMD_3DNOW | JSIMD_MMX;
 #endif
-#elif SIMD_ARCHITECTURE == ARM
+#elif SIMD_ARCHITECTURE == ARM || SIMD_ARCHITECTURE == ARM64
   if (!GETENV_S(env, 2, "JSIMD_FORCENEON") && !strcmp(env, "1"))
     simd_support = JSIMD_NEON;
 #elif SIMD_ARCHITECTURE == RISCV64
@@ -140,6 +140,10 @@ jsimd_set_rgb_ycc(j_compress_ptr cinfo)
   }
 #endif
 #elif SIMD_ARCHITECTURE == ARM64 || SIMD_ARCHITECTURE == ARM
+  if (cinfo->master->simd_support & JSIMD_SVE2) {
+    SET_SIMD_EXTRGB_COLOR_CONVERTER(ycc, sve2);
+    return JSIMD_SVE2;
+  }
   if (cinfo->master->simd_support & JSIMD_NEON) {
     SET_SIMD_EXTRGB_COLOR_CONVERTER(ycc, neon);
     return JSIMD_NEON;
@@ -263,6 +267,10 @@ jsimd_set_ycc_rgb(j_decompress_ptr cinfo)
   }
 #endif
 #elif SIMD_ARCHITECTURE == ARM64 || SIMD_ARCHITECTURE == ARM
+  if (cinfo->master->simd_support & JSIMD_SVE2) {
+    SET_SIMD_EXTRGB_COLOR_DECONVERTER(sve2);
+    return JSIMD_SVE2;
+  }
   if (cinfo->master->simd_support & JSIMD_NEON) {
     SET_SIMD_EXTRGB_COLOR_DECONVERTER(neon);
     return JSIMD_NEON;
@@ -301,6 +309,10 @@ jsimd_set_ycc_rgb565(j_decompress_ptr cinfo)
   if (!cinfo->cconvert)
     return JSIMD_NONE;
 
+  if (cinfo->master->simd_support & JSIMD_SVE2) {
+    cinfo->cconvert->color_convert_simd = jsimd_ycc_rgb565_convert_sve2;
+    return JSIMD_SVE2;
+  }
   if (cinfo->master->simd_support & JSIMD_NEON) {
     cinfo->cconvert->color_convert_simd = jsimd_ycc_rgb565_convert_neon;
     return JSIMD_NEON;
@@ -1086,6 +1098,10 @@ jsimd_set_quantize(j_compress_ptr cinfo, quantize_method_ptr *method)
   }
 #endif
 #elif SIMD_ARCHITECTURE == ARM64 || SIMD_ARCHITECTURE == ARM
+  if (cinfo->master->simd_support & JSIMD_SVE2) {
+    *method = jsimd_quantize_sve2;
+    return JSIMD_SVE2;
+  }
   if (cinfo->master->simd_support & JSIMD_NEON) {
     *method = jsimd_quantize_neon;
     return JSIMD_NEON;
